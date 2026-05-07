@@ -79,7 +79,8 @@
             font-weight: bold;
         }
 
-        .calendar-grid {
+        /* 用于截图的日历容器 */
+        #calendar {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 10px;
@@ -137,7 +138,7 @@
         }
 
         @media (max-width: 480px) {
-            .calendar-grid {
+            #calendar {
                 grid-template-columns: repeat(2, 1fr);
             }
             .title {
@@ -162,13 +163,16 @@
         </div>
     </div>
 
+    <!-- 截图区域：只包含日历卡片 -->
     <div id="captureWrap">
-        <div id="calendar" class="calendar-grid"></div>
-        <div class="footer">
-            牢房查看器没更新，代码由豆包老师提供。by:蠹毒@白银乡
-        </div>
-        <div class="now-time" id="nowTime"></div>
+        <div id="calendar"></div>
     </div>
+
+    <!-- 以下内容不会被导出 -->
+    <div class="footer">
+        牢房查看器没更新，代码由豆包老师提供。by:蠹毒@白银乡
+    </div>
+    <div class="now-time" id="nowTime"></div>
 </div>
 
 <script>
@@ -244,13 +248,14 @@ function nextMonth() {
     loadCalendar();
 }
 
+// 导出日历为图片 (白底，无底部文字)
 function exportCalendarImage() {
     const target = document.getElementById("captureWrap");
     const fileName = `${currentYear}年${currentMonth}月_FF14纷争前线日历.png`;
 
     html2canvas(target, {
         scale: 2,
-        backgroundColor: null
+        backgroundColor: "#ffffff" // 白色背景
     }).then(canvas => {
         const link = document.createElement("a");
         link.download = fileName;
@@ -259,10 +264,9 @@ function exportCalendarImage() {
     });
 }
 
-// 修复：北京时间 东八区
+// 北京时间
 function updateTime(){
     let now = new Date();
-    // 补偿时区差，改成北京时间
     let beijingTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
     let h = beijingTime.getUTCHours().toString().padStart(2,'0');
     let m = beijingTime.getUTCMinutes().toString().padStart(2,'0');

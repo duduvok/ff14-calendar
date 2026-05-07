@@ -2,8 +2,11 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 手机屏幕强制适配关键代码 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FF14 纷争前线轮换日历</title>
+    <!-- 引入网页转图片库 -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -15,7 +18,7 @@
         body {
             background: linear-gradient(135deg, #1a202c, #2d3748);
             min-height: 100vh;
-            padding: 30px 20px;
+            padding: 20px 15px;
             color: #e2e8f0;
         }
 
@@ -26,52 +29,70 @@
 
         .title {
             text-align: center;
-            font-size: 26px;
+            font-size: 22px;
             margin-bottom: 15px;
             color: #f6e05e;
         }
 
-        /* 月份切换按钮 */
+        /* 按钮区域 */
+        .control-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
         .month-control {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 25px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
-        .month-btn {
-            padding: 8px 16px;
+        .export-control {
+            text-align: center;
+        }
+
+        .month-btn, .export-btn {
+            padding: 7px 14px;
             background: #3182ce;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 15px;
+            font-size: 14px;
             transition: 0.2s;
         }
 
-        .month-btn:hover {
+        .month-btn:hover, .export-btn:hover {
             background: #4299e1;
         }
 
+        .export-btn {
+            background: #38b2ac;
+        }
+        .export-btn:hover {
+            background: #4fd1c5;
+        }
+
         .current-month {
-            font-size: 18px;
+            font-size: 16px;
             color: #fff;
             font-weight: bold;
         }
 
-        /* 日历网格 */
+        /* 日历网格 手机自适应 */
         .calendar-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-            gap: 12px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 30px;
         }
 
         .day-card {
             border-radius: 12px;
-            padding: 18px;
+            padding: 15px 8px;
             border-width: 2px;
             border-style: solid;
             transition: 0.3s;
@@ -80,7 +101,7 @@
         }
 
         .day-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-2px);
         }
 
         /* 今日高亮 */
@@ -90,14 +111,14 @@
         }
 
         .day-num {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             color: #fff;
         }
 
         .day-name {
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.4;
         }
 
@@ -111,15 +132,25 @@
         /* 底部署名 & 时间 */
         .footer {
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
             color: #a0aec0;
-            padding: 10px 0;
+            padding: 8px 0;
         }
         .now-time {
             text-align: center;
-            font-size: 13px;
+            font-size: 12px;
             color: #718096;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+        }
+
+        /* 小手机进一步适配 */
+        @media (max-width: 480px) {
+            .calendar-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .title {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
@@ -128,25 +159,28 @@
 <div class="container">
     <h2 class="title" id="mainTitle">FF14 纷争前线轮换日历</h2>
 
-    <!-- 月份切换按钮 -->
-    <div class="month-control">
-        <button class="month-btn" onclick="prevMonth()">← 上个月</button>
-        <div class="current-month" id="monthLabel">2026年5月</div>
-        <button class="month-btn" onclick="nextMonth()">下个月 →</button>
+    <div class="control-wrap">
+        <div class="month-control">
+            <button class="month-btn" onclick="prevMonth()">← 上个月</button>
+            <div class="current-month" id="monthLabel">2026年5月</div>
+            <button class="month-btn" onclick="nextMonth()">下个月 →</button>
+        </div>
+        <div class="export-control">
+            <button class="export-btn" onclick="exportCalendarImage()">📷 导出本月日历为图片</button>
+        </div>
     </div>
 
-    <div id="calendar" class="calendar-grid"></div>
-
-    <!-- 底部署名 -->
-    <div class="footer">
-        牢房查看器没更新，代码由豆包老师提供。by:蠹毒@白银乡
+    <!-- 要截图的容器 -->
+    <div id="captureWrap">
+        <div id="calendar" class="calendar-grid"></div>
+        <div class="footer">
+            牢房查看器没更新，代码由豆包老师提供。by:蠹毒@白银乡
+        </div>
+        <div class="now-time" id="nowTime"></div>
     </div>
-    <!-- 实时当前时间 -->
-    <div class="now-time" id="nowTime"></div>
 </div>
 
 <script>
-// 战场轮换 + 配色
 const ROTATION = [
     { name: "尘封秘岩（争夺战）", color: "color-尘封" },
     { name: "荣誉野（碎冰战）", color: "color-碎冰" },
@@ -158,15 +192,12 @@ const ROTATION = [
     { name: "沃刻其特（演习战）", color: "color-沃刻" },
 ];
 
-// 基准日期
 const BASE_DATE = new Date(2026, 4, 7);
 const BASE_INDEX = 5;
 
-// 当前显示的年月
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth() + 1;
 
-// 加载日历
 function loadCalendar() {
     document.getElementById("monthLabel").innerText = `${currentYear}年${currentMonth}月`;
 
@@ -204,7 +235,6 @@ function loadCalendar() {
     }
 }
 
-// 上个月
 function prevMonth() {
     currentMonth--;
     if (currentMonth < 1) {
@@ -214,7 +244,6 @@ function prevMonth() {
     loadCalendar();
 }
 
-// 下个月
 function nextMonth() {
     currentMonth++;
     if (currentMonth > 12) {
@@ -224,16 +253,32 @@ function nextMonth() {
     loadCalendar();
 }
 
+// 导出日历为图片
+function exportCalendarImage() {
+    const target = document.getElementById("captureWrap");
+    const fileName = `${currentYear}年${currentMonth}月_FF14纷争前线日历.png`;
+
+    html2canvas(target, {
+        scale: 2,
+        backgroundColor: null
+    }).then(canvas => {
+        // 创建下载链接
+        const link = document.createElement("a");
+        link.download = fileName;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    });
+}
+
 // 更新实时时间
 function updateTime(){
     let now = new Date();
     let h = now.getHours().toString().padStart(2,'0');
     let m = now.getMinutes().toString().padStart(2,'0');
     let s = now.getSeconds().toString().padStart(2,'0');
-    document.getElementById("nowTime").innerText = "当前系统时间：" + h + ":" + m + ":" + s;
+    document.getElementById("nowTime").innerText = "当前系统时间：" + h + ":" + s;
 }
 
-// 初始化
 window.onload = function () {
     const now = new Date();
     currentYear = now.getFullYear();

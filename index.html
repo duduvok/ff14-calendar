@@ -2,10 +2,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- 手机屏幕强制适配关键代码 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FF14 纷争前线轮换日历</title>
-    <!-- 引入网页转图片库 -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         * {
@@ -34,7 +32,6 @@
             color: #f6e05e;
         }
 
-        /* 按钮区域 */
         .control-wrap {
             display: flex;
             flex-direction: column;
@@ -82,7 +79,6 @@
             font-weight: bold;
         }
 
-        /* 日历网格 手机自适应 */
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -104,7 +100,6 @@
             transform: translateY(-2px);
         }
 
-        /* 今日高亮 */
         .today {
             box-shadow: 0 0 15px rgba(255,255,255,0.3);
             background: rgba(255,255,255,0.1);
@@ -122,14 +117,12 @@
             line-height: 1.4;
         }
 
-        /* 战场专属颜色 */
-        .color-尘封 { border-color: #f6c450; } /* 黄色 */
-        .color-碎冰 { border-color: #60a5fa; } /* 蓝色 */
-        .color-草原 { border-color: #4ade80; } /* 绿色 */
-        .color-沃刻 { border-color: #f8fafc; } /* 白色 */
-        .color-阵地 { border-color: #b97c50; } /* 棕色 */
+        .color-尘封 { border-color: #f6c450; }
+        .color-碎冰 { border-color: #60a5fa; }
+        .color-草原 { border-color: #4ade80; }
+        .color-沃刻 { border-color: #f8fafc; }
+        .color-阵地 { border-color: #b97c50; }
 
-        /* 底部署名 & 时间 */
         .footer {
             text-align: center;
             font-size: 13px;
@@ -143,7 +136,6 @@
             margin-bottom: 15px;
         }
 
-        /* 小手机进一步适配 */
         @media (max-width: 480px) {
             .calendar-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -170,7 +162,6 @@
         </div>
     </div>
 
-    <!-- 要截图的容器 -->
     <div id="captureWrap">
         <div id="calendar" class="calendar-grid"></div>
         <div class="footer">
@@ -253,7 +244,6 @@ function nextMonth() {
     loadCalendar();
 }
 
-// 导出日历为图片
 function exportCalendarImage() {
     const target = document.getElementById("captureWrap");
     const fileName = `${currentYear}年${currentMonth}月_FF14纷争前线日历.png`;
@@ -262,7 +252,6 @@ function exportCalendarImage() {
         scale: 2,
         backgroundColor: null
     }).then(canvas => {
-        // 创建下载链接
         const link = document.createElement("a");
         link.download = fileName;
         link.href = canvas.toDataURL("image/png");
@@ -270,13 +259,15 @@ function exportCalendarImage() {
     });
 }
 
-// 更新实时时间
+// 修复：北京时间 东八区
 function updateTime(){
     let now = new Date();
-    let h = now.getHours().toString().padStart(2,'0');
-    let m = now.getMinutes().toString().padStart(2,'0');
-    let s = now.getSeconds().toString().padStart(2,'0');
-    document.getElementById("nowTime").innerText = "当前系统时间：" + h + ":" + s;
+    // 补偿时区差，改成北京时间
+    let beijingTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
+    let h = beijingTime.getUTCHours().toString().padStart(2,'0');
+    let m = beijingTime.getUTCMinutes().toString().padStart(2,'0');
+    let s = beijingTime.getUTCSeconds().toString().padStart(2,'0');
+    document.getElementById("nowTime").innerText = "当前北京时间：" + h + ":" + m + ":" + s;
 }
 
 window.onload = function () {
